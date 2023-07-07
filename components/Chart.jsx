@@ -1,96 +1,85 @@
-import { useEffect, useState } from "react";
+import React, { Component } from "react";
 import { Line } from "react-chartjs-2";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "../firebase";
+import moment from "moment";
+import "moment/locale/th"; // หรือเลือก locale ที่ต้องการ
 
-const Chart = () => {
-  const [chartData, setChartData] = useState(null);
+class Chart extends Component {
+  chartRef = React.createRef();
+  chartInstance = null;
 
-  useEffect(() => {
-    const fetchData = () => {
-      const q = query(
-        collection(db, "your_collection_name"),
-        orderBy("createdAt")
-      );
+  componentDidMount() {
+    this.renderChart();
+  }
 
-      onSnapshot(q, (querySnapshot) => {
-        const sysData = [];
-        const diaData = [];
-        const pulData = [];
-        const labels = [];
+  componentDidUpdate() {
+    this.updateChart();
+  }
 
-        querySnapshot.forEach((doc) => {
-          const { sys, dia, pul, createdAt } = doc.data();
-          sysData.push(sys);
-          diaData.push(dia);
-          pulData.push(pul);
-          labels.push(createdAt.toDate().toLocaleString());
-        });
+  componentWillUnmount() {
+    this.destroyChart();
+  }
 
-        const updatedChartData = {
-          labels,
-          datasets: [
-            {
-              label: "SYS",
-              data: sysData,
-              borderColor: "red",
-              fill: false,
+  renderChart() {
+    const { chartData, displayTitle, displayLegend, legendPosition, location } =
+      this.props;
+
+    const options = {
+      plugins: {
+        title: {
+          display: displayTitle,
+          text: `Largest Cities In ${location}`,
+          fontSize: 25,
+        },
+        legend: {
+          display: displayLegend,
+          position: legendPosition,
+        },
+      },
+      scales: {
+        x: {
+          type: "time",
+          time: {
+            unit: "day",
+            tooltipFormat: "ll", // รูปแบบการแสดงผลใน Tooltip ของวันที่
+            displayFormats: {
+              day: "ll", // รูปแบบการแสดงผลในแกน x
             },
-            {
-              label: "DIA",
-              data: diaData,
-              borderColor: "blue",
-              fill: false,
-            },
-            {
-              label: "PUL",
-              data: pulData,
-              borderColor: "green",
-              fill: false,
-            },
-          ],
-        };
-
-        setChartData(updatedChartData);
-      });
+          },
+        },
+      },
     };
 
-    fetchData();
-  }, []);
+    const canvas = this.chartRef.current;
+    const ctx = canvas.getContext("2d");
 
-  return (
-    <div>
-      {chartData && (
-        <Line
-          data={chartData}
-          options={{
-            responsive: true,
-            scales: {
-              x: {
-                type: "time",
-                time: {
-                  unit: "day",
-                  displayFormats: {
-                    day: "MMM D",
-                  },
-                },
-                title: {
-                  display: true,
-                  text: "Date",
-                },
-              },
-              y: {
-                title: {
-                  display: true,
-                  text: "Value",
-                },
-              },
-            },
-          }}
-        />
-      )}
-    </div>
-  );
+    this.chartInstance = new Chart(ctx, {
+      type: "line",
+      data: chartData,
+      options: options,
+    });
+  }
+
+  updateChart() {
+    const { chartData } = this.props;
+
+    this.chartInstance.data = chartData;
+    this.chartInstance.update();
+  }
+
+  destroyChart() {
+    this.chartInstance.destroy();
+  }
+
+  render() {
+    return <canvas ref={this.chartRef} width="400" height="400" />;
+  }
+}
+
+Chart.defaultProps = {
+  displayTitle: true,
+  displayLegend: true,
+  legendPosition: "right",
+  location: "City",
 };
 
 export default Chart;

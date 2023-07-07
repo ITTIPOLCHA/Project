@@ -1,34 +1,14 @@
 import React from "react";
-import { Box, Button, Link, Text, useColorMode } from "@chakra-ui/react";
-import {
-  signInWithPopup,
-  GoogleAuthProvider,
-  getAuth,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
-import { FaGoogle, FaMoon, FaSun } from "react-icons/fa";
+import { Box, Button, Text } from "@chakra-ui/react";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { FaGoogle } from "react-icons/fa";
 import { auth } from "../firebase";
 import useAuth from "../hooks/useAuth";
+
 const Auth = () => {
-  const { toggleColorMode, colorMode } = useColorMode();
   const { isLoggedIn, user } = useAuth();
 
   const handleAuth = async () => {
-    const email = ""; // แทนที่ getEmailValue() ด้วยฟังก์ชันหรือตัวแปรที่ใช้รับค่า email ได้
-    const password = ""; // แทนที่ getPasswordValue() ด้วยฟังก์ชันหรือตัวแปรที่ใช้รับค่า password ได้
-    const Auth = getAuth();
-    createUserWithEmailAndPassword(Auth, email, password)
-      .then((userCredential) => {
-        // Signed in
-        const user = userCredential.user;
-        // ...
-      })
-      .catch((error) => {
-        // Handle Errors here
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // ...
-      });
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
       .then((result) => {
@@ -45,16 +25,19 @@ const Auth = () => {
   };
 
   return (
-    <Box position={"fixed"} top="5%" right="5%">
-      <Button onClick={() => toggleColorMode()}>
-        {colorMode == "dark" ? <FaSun /> : <FaMoon />}
-      </Button>{" "}
+    <Box>
       {isLoggedIn && (
         <>
           <Text color="green.500">{user.email}</Text>
-          <Link color="red.500" onClick={() => auth.signOut()}>
+          <Button
+            colorScheme="teal"
+            variant="outline"
+            color="red.500"
+            onClick={() => auth.signOut()}
+            my={2}
+          >
             Logout
-          </Link>
+          </Button>
         </>
       )}
       {!isLoggedIn && (

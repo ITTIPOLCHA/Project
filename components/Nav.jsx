@@ -1,27 +1,26 @@
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "@chakra-ui/react";
 import React from "react";
+import MenuL from "./MenuL";
+import { Button, useColorMode, Flex, Box } from "@chakra-ui/react";
+import { FaMoon, FaSun } from "react-icons/fa";
 
-const Nav = () => {
+function Nav() {
+  const { toggleColorMode, colorMode } = useColorMode();
   return (
-    <Breadcrumb>
-      <BreadcrumbItem>
-        <BreadcrumbLink href="/">Home</BreadcrumbLink>
-      </BreadcrumbItem>
-
-      <BreadcrumbItem>
-        <BreadcrumbLink href="BP">BP</BreadcrumbLink>
-      </BreadcrumbItem>
-
-      <BreadcrumbItem isCurrentPage>
-        <BreadcrumbLink href="#">Bread</BreadcrumbLink>
-      </BreadcrumbItem>
-    </Breadcrumb>
+    <Box pt={3}>
+      <Flex
+        justifyContent="flex-end"
+        alignItems="flex-end"
+        px={1}
+        mx="auto"
+        maxW="container.lg"
+      >
+        <Button onClick={() => toggleColorMode()} px={2} mr={2}>
+          {colorMode === "dark" ? <FaSun /> : <FaMoon />}
+        </Button>
+        <MenuL />
+      </Flex>
+    </Box>
   );
-};
+}
 
 export default Nav;

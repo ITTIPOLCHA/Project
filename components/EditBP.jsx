@@ -1,27 +1,36 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import {
-  Text,
-  Box,
-  Input,
-  Button,
-  Stack,
-  useToast,
-  Link,
-} from "@chakra-ui/react";
+import { Text, Box, Input, Button, Stack, useToast } from "@chakra-ui/react";
 import useAuth from "../hooks/useAuth";
-import { addBP } from "../api/bp";
+import { editBP } from "../api/bp";
+import Link from "next/link";
 
-const AddBP = () => {
-  const [sys, setSYS] = React.useState("");
-  const [dia, setDIA] = React.useState("");
-  const [pul, setPUL] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
+const EditBP = () => {
+  const [sys, setSYS] = useState("");
+  const [dia, setDIA] = useState("");
+  const [pul, setPUL] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const toast = useToast();
   const router = useRouter();
+  const { docId } = router.query;
 
   const { isLoggedIn, user } = useAuth();
+
+  useEffect(() => {
+    const fetchBPData = async () => {
+      try {
+        const bpData = await getBPData(docId);
+        setSYS(bpData.sys);
+        setDIA(bpData.dia);
+        setPUL(bpData.pul);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchBPData();
+  }, [docId]);
 
   const handleInputChange = (e, setValue) => {
     const value = e.target.value;
@@ -41,10 +50,10 @@ const AddBP = () => {
     handleInputChange(e, setPUL);
   };
 
-  const handleBPCreate = async () => {
+  const handleBPEdit = async () => {
     if (!isLoggedIn) {
       toast({
-        title: "You must be logged in to create a BP",
+        title: "You must be logged in to edit a BP",
         status: "error",
         duration: 9000,
         isClosable: true,
@@ -56,7 +65,7 @@ const AddBP = () => {
 
     if (!sys || !dia || !pul) {
       toast({
-        title: "กรุณาใส่ค่า SYS, DIA, และ PUL",
+        title: "Please enter SYS, DIA, and PUL values",
         status: "error",
         duration: 9000,
         isClosable: true,
@@ -65,15 +74,8 @@ const AddBP = () => {
       return;
     }
 
-    const bp = {
-      sys,
-      dia,
-      pul,
-      userId: user.uid,
-    };
-
     try {
-      await addBP(bp);
+      await editBP({ docId, sys, dia, pulse: pul });
     } catch (err) {
       console.log(err);
     }
@@ -85,7 +87,7 @@ const AddBP = () => {
     setPUL("");
 
     toast({
-      title: "BP ถูกสร้างเเล้ว",
+      title: "BP has been updated",
       status: "success",
       duration: 2000,
       isClosable: true,
@@ -94,40 +96,36 @@ const AddBP = () => {
     router.push("/bp");
   };
 
-  const handleBack = async () => {
-    router.push("/bp");
-  };
-
   return (
     <Box w="90%" margin={"0 auto"} display="block" pt={5}>
       <Stack direction="column">
-        <Text fontSize="2xl" fontWeight="bold" color="write">
-          ADD BP
+        <Text fontSize="2xl" fontWeight="bold" color="white">
+          Edit BP
         </Text>
         <Input
           placeholder="SYS: 90-140 mmHg"
           value={sys}
-          onChange={(e) => handleInputChange(e, setSYS)}
+          onChange={handleICSYS}
           mb={2}
         />
 
         <Input
           placeholder="DIA: 60-90 mmHg"
           value={dia}
-          onChange={(e) => handleInputChange(e, setDIA)}
+          onChange={handleICDIA}
           mb={2}
         />
 
         <Input
           placeholder="PUL: 60-100 per minute"
           value={pul}
-          onChange={(e) => handleInputChange(e, setPUL)}
+          onChange={handleICPUL}
           mb={2}
         />
 
         <Button
           colorScheme="green"
-          onClick={handleBPCreate}
+          onClick={handleBPEdit}
           disabled={!sys || !dia || !pul || isLoading}
           variantColor="teal"
           variant="solid"
@@ -135,17 +133,12 @@ const AddBP = () => {
         >
           Submit
         </Button>
-        <Button
-          colorScheme="red"
-          onClick={handleBack}
-          variantColor="teal"
-          variant="solid"
-        >
-          Back
+        <Button colorScheme="red">
+          <Link href="/bp">Back</Link>
         </Button>
       </Stack>
     </Box>
   );
 };
 
-export default AddBP;
+export default EditBP;
